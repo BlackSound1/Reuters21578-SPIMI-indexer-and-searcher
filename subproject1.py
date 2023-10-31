@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 from glob import glob
 from pathlib import Path
@@ -144,11 +145,37 @@ def create_pairs(tokens: List[str], docID: int) -> list:
     return pairs
 
 
-def main():
+def save_to_file(index: dict) -> None:
+    """
+    Save the computed index to an output file.
+
+    Always saves to `output/naive_indexer.txt`.
+
+    :param index: The index to save to file
+    """
+
+    Path('index/').mkdir(exist_ok=True, parents=True)
+
+    with open("index/1. naive_index.txt", "wt") as f:
+        json.dump(index, f)
+
+
+def SPIMI() -> None:
+    print('\n----------SPIMI Indexer----------')
+
     tick = time.perf_counter()
 
-    # Get all reuters objects in the corpus
-    ALL_TEXTS: List[Tag] = get_texts()
+    tock = time.perf_counter()
+
+    duration = timedelta(seconds=(tock - tick))
+
+    print(f"\nSPIMI Time taken: {duration}")
+
+
+def naive(ALL_TEXTS: list) -> None:
+    print('\n----------Naive Indexer----------')
+
+    tick = time.perf_counter()
 
     # Create a list of (term, docID) pairs
     F: List[Tuple] = []
@@ -171,13 +198,24 @@ def main():
 
     # Create an index for the list of (term, docID) pairs
     print("\nCreating inverted index")
-    _ = create_index(F)
+    index = create_index(F)
+
+    # Save results to file
+    print("\nSaving to file: output/1. naive_index.txt")
+    save_to_file(index)
 
     tock = time.perf_counter()
 
     duration = timedelta(seconds=(tock - tick))
 
-    print(f"\nTime taken: {duration}")
+    print(f"\nNaive Time taken: {duration}")
+
+
+def main():
+    # Get all reuters objects in the corpus
+    ALL_TEXTS: List[Tag] = get_texts()
+
+    naive(ALL_TEXTS)
 
 
 if __name__ == '__main__':
