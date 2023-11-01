@@ -173,12 +173,13 @@ def save_to_file(index: dict, mode: RunMode) -> None:
 
 
 def SPIMI(ALL_TEXTS: list) -> timedelta:
-    print('\n----------SPIMI Indexer----------')
+    print('\n---------- SPIMI Indexer ----------')
 
     print("\nCreating inverted index")
     index = defaultdict(list)
 
     tick = time.perf_counter()  # Start timing
+    tock = None  # Variable for when timing ends
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
@@ -193,10 +194,14 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
         for token in tokens:
             index[token] += [DOC_ID]
 
+        # Stop counting performance once 10,000 documents is reached
+        if DOC_ID == 10_000:
+            tock = time.perf_counter()
+
     # Sort the index by term
     index = dict(sorted(index.items()))
 
-    tock = time.perf_counter()
+    # tock = time.perf_counter()
 
     # Save results to file
     save_to_file(index, mode=RunMode.SPIMI)
@@ -205,12 +210,13 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
 
 
 def naive(ALL_TEXTS: list) -> timedelta:
-    print('\n----------Naive Indexer----------')
+    print('\n---------- Naive Indexer ----------')
 
     # Create a list of (term, docID) pairs
     F: List[Tuple] = []
 
     tick = time.perf_counter()  # Start timing
+    tock = None  # Variable for when timing ends
 
     print(f"\nCreating (term, docID) pairs for all articles. This will take about 30 seconds...")
 
@@ -225,14 +231,18 @@ def naive(ALL_TEXTS: list) -> timedelta:
         # Create (term, docID) pairs from those tokens, and add to existing list
         F.extend(create_pairs(tokens, DOC_ID))
 
+        # Stop counting performance once 10,000 documents is reached
+        if DOC_ID == 10_000:
+            tock = time.perf_counter()
+
     # Sort the list of tuples by term
     F = sorted(F)
+
+    # tock = time.perf_counter()
 
     # Create an index for the list of (term, docID) pairs
     print("\nCreating inverted index")
     index = create_index(F)
-
-    tock = time.perf_counter()
 
     # Save results to file
     save_to_file(index, mode=RunMode.NAIVE)
@@ -247,12 +257,12 @@ def main():
     duration_n = naive(ALL_TEXTS)
     duration_s = SPIMI(ALL_TEXTS)
 
-    print('\n----------Timing Results----------')
+    print('\n---------- Timing Results ----------')
 
-    print(f"\nNaive Time taken: {duration_n}")
-    print(f"\nSPIMI Time taken: {duration_s}")
+    print(f"\nNaive: Time taken to index first 10,000 documents: {duration_n}")
+    print(f"\nSPIMI: Time taken to index first 10,000 documents: {duration_s}")
 
-    diff = abs((duration_s - duration_n) / duration_n) * 100
+    diff = -((duration_s - duration_n) / duration_n) * 100
     print(f"\nThere is a time difference of {diff:.2f}%")
 
 
