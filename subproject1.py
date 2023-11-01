@@ -10,6 +10,8 @@ import time
 from bs4 import BeautifulSoup, Tag
 from nltk import word_tokenize
 
+from utilities import RunMode
+
 
 def get_texts() -> List[Tag]:
     """
@@ -145,34 +147,61 @@ def create_pairs(tokens: List[str], docID: int) -> list:
     return pairs
 
 
-def save_to_file(index: dict) -> None:
+def save_to_file(index: dict, mode: RunMode) -> None:
     """
     Save the computed index to an output file.
 
     Always saves to `output/naive_indexer.txt`.
 
     :param index: The index to save to file
+    :param mode: Whether naive or SPIMI
     """
 
     Path('index/').mkdir(exist_ok=True, parents=True)
 
-    with open("index/1. naive_index.txt", "wt") as f:
+    file = ''
+
+    if mode == RunMode.NAIVE:
+        file = "index/naive_index.txt"
+    elif mode == RunMode.SPIMI:
+        file = "index/spimi_index.txt"
+
+    print(f"\nSaving to file: {file}")
+
+    with open(file, "wt") as f:
         json.dump(index, f)
 
 
-def SPIMI() -> None:
+def SPIMI(ALL_TEXTS: list) -> timedelta:
     print('\n----------SPIMI Indexer----------')
 
     tick = time.perf_counter()
 
+    print("\nCreating inverted index")
+    index = defaultdict(list)
+
+    # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
+    for text in ALL_TEXTS:
+        # Find the docID for this document
+        DOC_ID = int(text.attrs['newid'])
+
+        # Create list of tokens
+        tokens = process_document(text)
+
+        # For each token in this document, add it's token to the index if it doesn't exist and add this docID to its
+        # postings list. If it does exist, simply update its postings list
+        for token in tokens:
+            index[token] += [DOC_ID]
+
+    # Save results to file
+    save_to_file(index, mode=RunMode.SPIMI)
+
     tock = time.perf_counter()
 
-    duration = timedelta(seconds=(tock - tick))
-
-    print(f"\nSPIMI Time taken: {duration}")
+    return timedelta(seconds=(tock - tick))
 
 
-def naive(ALL_TEXTS: list) -> None:
+def naive(ALL_TEXTS: list) -> timedelta:
     print('\n----------Naive Indexer----------')
 
     tick = time.perf_counter()
@@ -201,21 +230,25 @@ def naive(ALL_TEXTS: list) -> None:
     index = create_index(F)
 
     # Save results to file
-    print("\nSaving to file: output/1. naive_index.txt")
-    save_to_file(index)
+    save_to_file(index, mode=RunMode.NAIVE)
 
     tock = time.perf_counter()
 
-    duration = timedelta(seconds=(tock - tick))
-
-    print(f"\nNaive Time taken: {duration}")
+    return timedelta(seconds=(tock - tick))
 
 
 def main():
     # Get all reuters objects in the corpus
     ALL_TEXTS: List[Tag] = get_texts()
 
-    naive(ALL_TEXTS)
+    duration_n = naive(ALL_TEXTS)
+    duration_s = SPIMI(ALL_TEXTS)
+
+    print(f"\nNaive Time taken: {duration_n}")
+    print(f"\nSPIMI Time taken: {duration_s}")
+
+    diff = abs((duration_s - duration_n) / duration_n)
+    print(f"\nThere is a time difference of {diff:.2f}%")
 
 
 if __name__ == '__main__':
