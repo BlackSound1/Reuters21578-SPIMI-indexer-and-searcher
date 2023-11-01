@@ -175,10 +175,10 @@ def save_to_file(index: dict, mode: RunMode) -> None:
 def SPIMI(ALL_TEXTS: list) -> timedelta:
     print('\n----------SPIMI Indexer----------')
 
-    tick = time.perf_counter()
-
     print("\nCreating inverted index")
     index = defaultdict(list)
+
+    tick = time.perf_counter()  # Start timing
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
@@ -193,10 +193,10 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
         for token in tokens:
             index[token] += [DOC_ID]
 
+    tock = time.perf_counter()
+
     # Save results to file
     save_to_file(index, mode=RunMode.SPIMI)
-
-    tock = time.perf_counter()
 
     return timedelta(seconds=(tock - tick))
 
@@ -204,12 +204,12 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
 def naive(ALL_TEXTS: list) -> timedelta:
     print('\n----------Naive Indexer----------')
 
-    tick = time.perf_counter()
-
     # Create a list of (term, docID) pairs
     F: List[Tuple] = []
 
     print(f"\nCreating (term, docID) pairs for all articles. This will take about 30 seconds...")
+
+    tick = time.perf_counter()  # Start timing
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
@@ -229,10 +229,10 @@ def naive(ALL_TEXTS: list) -> timedelta:
     print("\nCreating inverted index")
     index = create_index(F)
 
+    tock = time.perf_counter()
+
     # Save results to file
     save_to_file(index, mode=RunMode.NAIVE)
-
-    tock = time.perf_counter()
 
     return timedelta(seconds=(tock - tick))
 
@@ -243,6 +243,8 @@ def main():
 
     duration_n = naive(ALL_TEXTS)
     duration_s = SPIMI(ALL_TEXTS)
+
+    print('\n----------Timing Results----------')
 
     print(f"\nNaive Time taken: {duration_n}")
     print(f"\nSPIMI Time taken: {duration_s}")
