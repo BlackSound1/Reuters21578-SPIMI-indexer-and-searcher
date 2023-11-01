@@ -193,6 +193,9 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
         for token in tokens:
             index[token] += [DOC_ID]
 
+    # Sort the index by term
+    index = dict(sorted(index.items()))
+
     tock = time.perf_counter()
 
     # Save results to file
@@ -207,9 +210,9 @@ def naive(ALL_TEXTS: list) -> timedelta:
     # Create a list of (term, docID) pairs
     F: List[Tuple] = []
 
-    print(f"\nCreating (term, docID) pairs for all articles. This will take about 30 seconds...")
-
     tick = time.perf_counter()  # Start timing
+
+    print(f"\nCreating (term, docID) pairs for all articles. This will take about 30 seconds...")
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
@@ -249,7 +252,7 @@ def main():
     print(f"\nNaive Time taken: {duration_n}")
     print(f"\nSPIMI Time taken: {duration_s}")
 
-    diff = abs((duration_s - duration_n) / duration_n)
+    diff = abs((duration_s - duration_n) / duration_n) * 100
     print(f"\nThere is a time difference of {diff:.2f}%")
 
 
