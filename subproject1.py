@@ -172,7 +172,15 @@ def save_to_file(index: dict, mode: RunMode) -> None:
         json.dump(index, f)
 
 
-def SPIMI(ALL_TEXTS: list) -> timedelta:
+def SPIMI(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
+    """
+    Implement a SPIMI-style indexer.
+
+    :param ALL_TEXTS: The list of documents to index
+    :param full_timing: Whether to stop timing at the end of the process, or after 10,000 documents
+    :return: How long the process took, according to `full_timing`
+    """
+
     print('\n---------- SPIMI Indexer ----------')
 
     print("\nCreating inverted index")
@@ -194,14 +202,16 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
         for token in tokens:
             index[token] += [DOC_ID]
 
-        # Stop counting performance once 10,000 documents is reached
-        if DOC_ID == 10_000:
+        # If timing stops after 10,000 documents
+        if not full_timing and DOC_ID == 10_000:
             tock = time.perf_counter()
 
     # Sort the index by term
     index = dict(sorted(index.items()))
 
-    # tock = time.perf_counter()
+    # If timing stops at the end of the process
+    if full_timing:
+        tock = time.perf_counter()
 
     # Save results to file
     save_to_file(index, mode=RunMode.SPIMI)
@@ -209,7 +219,15 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
     return timedelta(seconds=(tock - tick))
 
 
-def naive(ALL_TEXTS: list) -> timedelta:
+def naive(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
+    """
+    Recreate the Project 2 Subproject 1 indexer.
+
+    :param ALL_TEXTS: The list of documents to index
+    :param full_timing: Whether to stop timing at the end of the process, or after 10,000 documents
+    :return: How long the process took, according to `full_timing`
+    """
+
     print('\n---------- Naive Indexer ----------')
 
     # Create a list of (term, docID) pairs
@@ -231,14 +249,15 @@ def naive(ALL_TEXTS: list) -> timedelta:
         # Create (term, docID) pairs from those tokens, and add to existing list
         F.extend(create_pairs(tokens, DOC_ID))
 
-        # Stop counting performance once 10,000 documents is reached
-        if DOC_ID == 10_000:
+        # If timing stops after 10,000 documents
+        if not full_timing and DOC_ID == 10_000:
             tock = time.perf_counter()
 
     # Sort the list of tuples by term
     F = sorted(F)
 
-    # tock = time.perf_counter()
+    if full_timing:
+        tock = time.perf_counter()
 
     # Create an index for the list of (term, docID) pairs
     print("\nCreating inverted index")
@@ -254,13 +273,19 @@ def main():
     # Get all reuters objects in the corpus
     ALL_TEXTS: List[Tag] = get_texts()
 
-    duration_n = naive(ALL_TEXTS)
-    duration_s = SPIMI(ALL_TEXTS)
+    FULL_TIMING = False
+
+    duration_n = naive(ALL_TEXTS, FULL_TIMING)
+    duration_s = SPIMI(ALL_TEXTS, FULL_TIMING)
 
     print('\n---------- Timing Results ----------')
 
-    print(f"\nNaive: Time taken to index first 10,000 documents: {duration_n}")
-    print(f"\nSPIMI: Time taken to index first 10,000 documents: {duration_s}")
+    if not FULL_TIMING:
+        print(f"\nNaive: Time taken to index first 10,000 documents: {duration_n}")
+        print(f"\nSPIMI: Time taken to index first 10,000 documents: {duration_s}")
+    else:
+        print(f"\nNaive: Time taken to index all documents: {duration_n}")
+        print(f"\nSPIMI: Time taken to index all documents: {duration_s}")
 
     diff = -((duration_s - duration_n) / duration_n) * 100
     print(f"\nThere is a time difference of {diff:.2f}%")
