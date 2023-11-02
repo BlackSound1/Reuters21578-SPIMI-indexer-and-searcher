@@ -64,8 +64,78 @@ def unranked(query: str) -> None:
     print(f"\nGiven the query {query}: for the SPIMI indexer, found postings: {list(spimi_postings)}")
 
 
-def ranked(query: str):
-    pass
+def ranked(query: str, top_k: int = 10) -> None:
+    """
+    Performed ranked search on naive and SPIMI index, given a multi-keyword OR query. Compare results.
+
+    :param query: The multi-keyword query to search for
+    :param top_k: The number of best results to return e.g. top 10 results only.
+    """
+
+    # Turn query into a list of keywords, stripping OR
+    query_clean = [w.strip() for w in query.split('OR')]
+
+    # OPERATE ON NAIVE INDEX
+
+    # Create an empty list for all postings found in this query
+    naive_postings = []
+
+    # Go through all query terms
+    for q in query_clean:
+
+        # Add the found postings to the main list
+        naive_postings += naive[q]
+
+    # Sort the postings list found by frequency of documents, such that postings with higher frequency appear first
+    naive_postings = sorted(naive_postings, key=naive_postings.count, reverse=True)
+
+    # Create a dict to associate documents with how many query terms in that document
+    naive_result = {}
+
+    # Go through each posting that was found
+    for posting in naive_postings:
+
+        # If we've reached the top_k documents, stop
+        if len(naive_result.keys()) == top_k:
+            break
+
+        # If we don't already have this posting in the dictionary, add it and its frequency in the main postings list
+        if posting not in naive_result.keys():
+            naive_result[posting] = naive_postings.count(posting)
+
+    print(f"\nGiven the query {query}: for the naive indexer, found postings " +
+          "({posting: count}): " + f"{naive_result}")
+
+    # OPERATE ON SPIMI INDEX
+
+    # Create an empty list for all postings found in this query
+    spimi_postings = []
+
+    # Go through all query terms
+    for q in query_clean:
+
+        # Add the found postings to the main list
+        spimi_postings += SPIMI[q]
+
+    # Sort the postings list found by frequency of documents, such that postings with higher frequency appear first
+    spimi_postings = sorted(spimi_postings, key=spimi_postings.count, reverse=True)
+
+    # Create a dict to associate documents with how many query terms in that document
+    spimi_result = {}
+
+    # Go through each posting that was found
+    for posting in spimi_postings:
+
+        # If we've reached the top_k documents, stop
+        if len(spimi_result.keys()) == top_k:
+            break
+
+        # If we don't already have this posting in the dictionary, add it and its frequency in the main postings list
+        if posting not in spimi_result.keys():
+            spimi_result[posting] = spimi_postings.count(posting)
+
+    print(f"\nGiven the query {query}: for the SPIMI indexer, found postings " +
+          "({posting: count}): " + f"{spimi_result}")
 
 
 def BM25(query: str):
@@ -89,6 +159,7 @@ def main():
 
     single(test1)
     unranked(test2)
+    ranked(test3)
 
 
 if __name__ == '__main__':
