@@ -189,7 +189,7 @@ def SPIMI(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
     tick = time.perf_counter()  # Start timing
     tock = None  # Variable for when timing ends
 
-    # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
+    # Go through each text in the corpus and update the index based on it
     for text in ALL_TEXTS:
         # Find the docID for this document
         DOC_ID = int(text.attrs['newid'])
