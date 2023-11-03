@@ -139,7 +139,7 @@ def ranked(query: str, top_k: int = 10) -> None:
           "({posting: count}): " + f"{spimi_result}")
 
 
-def BM25(query: str, k_1: float = 1.5, b: float = 0.75) -> None:
+def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None:
     """
     Compute BM25 ranking for a given query.
 
@@ -148,12 +148,15 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75) -> None:
     :param query: The query to find rankings for
     :param k_1: A free parameter, typically between 1.2 and 2.0
     :param b: A free parameter, typically 0.75
+    :param top_k: Return the top k results to avoid overwhelming the user
     """
 
     # For each document in collection:
     # Use the terms in the query to compute the RSV for that document
     # Need N (# docs in collection), tf_td (count of term t in document d), L_d (length of doc d),
     # L_ave (avg. doc length in collection),
+
+    RSV = {}
 
     # Turn query into a list of keywords
     query_clean = [w.strip() for w in query.split(' ')]
