@@ -164,8 +164,57 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
     # The number of total documents
     N = 21578
 
+    # Get average document length
     with open('stats/avg_size.txt', 'rt') as f:
         L_ave = float(f.read())
+
+    # Get individual document length
+    with open('stats/doc_sizes.txt', 'rt') as f:
+        doc_sizes = json.load(f)
+
+    # Loop through each docID
+    for d in range(1, N + 1):
+        # Get the length of this document
+        L_d = doc_sizes[str(d)]
+
+        # Start RSV_d value for this document at 0
+        RSV_d = 0
+
+        # Sum over each term in the query
+        for t in query_clean:
+            # Find the document frequency for this term. This is represented by the postings list length
+            df_t = len(SPIMI[t])
+
+            # Find the term frequency for this term. This is represented by number of times the term t
+            # appears in document d. The 2nd term in each of the tuples in the postings list.
+            # Go through each tuple in the postings list, and the tf_td is the 2nd value in the tuple whose
+            # first value is d
+            try:
+                tf_td = [tup[1] for tup in SPIMI[t] if tup[0] == d][0]
+            except IndexError:
+                tf_td = 0
+
+            # Compute the log factor of the BM25 formula
+            log_factor = log(N / df_t, 10)
+
+            # Compute the rational factor of the BM25 formula
+            numerator = (k_1 + 1) * tf_td
+            denominator = k_1 * ((1 - b) + b * (L_d / L_ave)) + tf_td
+            rational_factor = numerator / denominator
+
+            # Add to the RSV_d value for this document, the result of multiplying the two factors
+            RSV_d += round(log_factor * rational_factor, 2)
+
+        # Add the RSV_d value for this document to the dictionary associating each document with its RSV
+        RSV[d] = RSV_d
+
+    # Sort the documents by highest RSV values
+    RSV = {k: v for k, v in sorted(RSV.items(), key=lambda item: item[1], reverse=True)}
+
+    # Get only top k results
+    RSV_top_k = list(RSV.items())[: top_k]
+
+    print(RSV_top_k)
 
 
 def main():
