@@ -40,7 +40,7 @@ def unranked(query: str) -> None:
 
     # Start with all documents. Since we will find intersections, need to start with all documents in a set, so first
     # keyword can intersect with it
-    spimi_postings = set(i for i in range(1, 10_001))  # Start with all documents
+    spimi_postings = set(i for i in range(1, 21_579))  # Start with all documents
 
     # Go through each keyword in the query
     for q in query_clean:
