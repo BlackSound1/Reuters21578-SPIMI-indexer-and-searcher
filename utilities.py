@@ -220,7 +220,7 @@ def save_to_file(index: dict, mode: RunMode) -> None:
     elif mode == RunMode.SPIMI:
         file = "index/spimi_index.txt"
 
-    print(f"\nSaving to file: {file}")
+    print(f"\nSaving to file: {file}...")
 
     with open(file, "wt") as f:
         json.dump(index, f)

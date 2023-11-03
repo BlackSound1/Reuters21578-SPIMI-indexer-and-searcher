@@ -18,7 +18,7 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
 
     print('\n---------- SPIMI Indexer ----------')
 
-    print("\nCreating inverted index")
+    print("\nCreating inverted index...")
     index = defaultdict(list)
 
     tick = time.perf_counter()  # Start timing
@@ -73,7 +73,7 @@ def naive(ALL_TEXTS: list) -> timedelta:
     # Create a list of (term, docID) pairs
     F: List[Tuple] = []
 
-    print(f"\nCreating (term, docID) pairs for all articles. This will take about 30 seconds...")
+    print(f"\nCreating (term, docID) pairs for all articles...")
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
@@ -90,7 +90,7 @@ def naive(ALL_TEXTS: list) -> timedelta:
     F = sorted(F)
 
     # Create an index for the list of (term, docID) pairs
-    print("\nCreating inverted index")
+    print("\nCreating inverted index...")
     index, duration = create_index(F)
 
     # Save results to file
