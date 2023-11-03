@@ -1,4 +1,5 @@
 import json
+from math import log
 
 naive: dict
 SPIMI: dict
@@ -138,14 +139,30 @@ def ranked(query: str, top_k: int = 10) -> None:
           "({posting: count}): " + f"{spimi_result}")
 
 
-def BM25(query: str):
+def BM25(query: str, k_1: float = 1.5, b: float = 0.75) -> None:
+    """
+    Compute BM25 ranking for a given query.
+
+    Based off the first formula in the book that has k_1 and b parameters (p. 233, fig. 11.32).
+
+    :param query: The query to find rankings for
+    :param k_1: A free parameter, typically between 1.2 and 2.0
+    :param b: A free parameter, typically 0.75
+    """
+
     # For each document in collection:
     # Use the terms in the query to compute the RSV for that document
     # Need N (# docs in collection), tf_td (count of term t in document d), L_d (length of doc d),
     # L_ave (avg. doc length in collection),
 
+    # Turn query into a list of keywords
+    query_clean = [w.strip() for w in query.split(' ')]
 
-    pass
+    # The number of total documents
+    N = 21578
+
+    with open('stats/avg_size.txt', 'rt') as f:
+        L_ave = float(f.read())
 
 
 def main():
@@ -163,9 +180,10 @@ def main():
         global SPIMI
         SPIMI = json.load(f)
 
-    single(test1)
-    unranked(test2)
-    ranked(test3)
+    # single(test1)
+    # unranked(test2)
+    # ranked(test3)
+    BM25(test4)
 
 
 if __name__ == '__main__':
