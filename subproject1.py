@@ -46,12 +46,13 @@ def get_texts() -> List[Tag]:
     return all_articles
 
 
-def process_document(document: Tag) -> list:
+def process_document(document: Tag, duplicates: bool = False) -> list:
     """
     Perform various textual processing steps on a given document to get ready for future steps.
 
     :param document: The Reuters document, as represented by a Tag object
-    :return: A list of cleaned, tokenized, lower-cased, sorted tokens with no duplicates
+    :param duplicates: Whether to remove duplicate postings
+    :return: A list of cleaned, tokenized, tokens
     """
 
     # Text is given as an individual document. Get the only document text in the list of 'text' tags in the document
@@ -66,10 +67,11 @@ def process_document(document: Tag) -> list:
     # Tokenize the text
     tokenized: List[str] = word_tokenize(cleaned_text)
 
-    # Remove duplicates
-    no_dupes = set(tokenized)
+    # Remove duplicates if required
+    if not duplicates:
+        tokenized = list(set(tokenized))
 
-    return list(no_dupes)
+    return tokenized
 
 
 def clean(text: str) -> str:
@@ -194,20 +196,30 @@ def SPIMI(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
         # Find the docID for this document
         DOC_ID = int(text.attrs['newid'])
 
-        # Create list of tokens
-        tokens = process_document(text)
+        # Create list of tokens without removing duplicates. Will use duplicates to compute term frequencies
+        tokens = process_document(text, duplicates=True)
 
-        # For each token in this document, add it's token to the index if it doesn't exist and add this docID to its
-        # postings list. If it does exist, simply update its postings list
+        # For each token in this document, add it's token to the index if it doesn't exist and add this
+        # (docID, term frequency) to its postings list as a tuple. If it does exist, simply update its postings list
         for token in tokens:
-            index[token] += [DOC_ID]
+            tf = tokens.count(token)  # Get the term frequency for this term in the tokens
+
+            # Append (docID, term frequency) to the postings list for this token
+            index[token] += [(DOC_ID, tf)]
 
         # If timing stops after 10,000 documents
         if not full_timing and DOC_ID == 10_000:
             tock = time.perf_counter()
 
+    # Remove duplicates in postings lists
+    index = {k: list(set(v)) for k, v in index.items()}
+
     # Sort the index by term
     index = dict(sorted(index.items()))
+
+    # Sort each postings list
+    for term in index:
+        index[term] = sorted(index[term])
 
     # If timing stops at the end of the process
     if full_timing:

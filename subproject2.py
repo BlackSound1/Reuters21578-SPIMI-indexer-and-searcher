@@ -21,7 +21,7 @@ def single(query: str) -> None:
     # OPERATE ON SPIMI INDEX
 
     # Search the SPIMI index for the single-term query
-    spimi_postings = SPIMI[query]
+    spimi_postings = [posting[0] for posting in SPIMI[query]]
 
     print(f"\nGiven the query {query}: for the SPIMI indexer, found postings: {spimi_postings}")
 
@@ -59,7 +59,7 @@ def unranked(query: str) -> None:
     # Go through each keyword in the query
     for q in query_clean:
         # Get the postings list for the query term in the SPIMI index. Intersect it with what we have above
-        spimi_postings = spimi_postings.intersection(SPIMI[q])
+        spimi_postings = spimi_postings.intersection({posting[0] for posting in SPIMI[q]})
 
     print(f"\nGiven the query {query}: for the SPIMI indexer, found postings: {list(spimi_postings)}")
 
@@ -115,7 +115,7 @@ def ranked(query: str, top_k: int = 10) -> None:
     for q in query_clean:
 
         # Add the found postings to the main list
-        spimi_postings += SPIMI[q]
+        spimi_postings += [posting[0] for posting in SPIMI[q]]
 
     # Sort the postings list found by frequency of documents, such that postings with higher frequency appear first
     spimi_postings = sorted(spimi_postings, key=spimi_postings.count, reverse=True)
@@ -139,6 +139,12 @@ def ranked(query: str, top_k: int = 10) -> None:
 
 
 def BM25(query: str):
+    # For each document in collection:
+    # Use the terms in the query to compute the RSV for that document
+    # Need N (# docs in collection), tf_td (count of term t in document d), L_d (length of doc d),
+    # L_ave (avg. doc length in collection),
+
+
     pass
 
 
