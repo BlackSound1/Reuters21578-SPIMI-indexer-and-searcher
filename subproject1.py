@@ -8,31 +8,6 @@ from bs4 import Tag
 from utilities import RunMode, process_document, save_to_file, create_pairs, create_index, compute_doc_stats, get_texts
 
 
-def main():
-    # Get all reuters objects in the corpus
-    print('\n---------- Getting Articles ----------')
-    ALL_TEXTS: List[Tag] = get_texts()
-
-    # Compute the stats for all documents, necessary for BM25
-    print('\n---------- Computing Statistics for all Articles ----------')
-    compute_doc_stats(ALL_TEXTS)
-
-    duration_n = naive(ALL_TEXTS)
-    duration_s = SPIMI(ALL_TEXTS)
-
-    print('\n---------- Timing Results ----------')
-
-    print(f"\nNaive: Time taken to index first 10,000 terms: {duration_n}")
-    print(f"\nSPIMI: Time taken to index first 10,000 terms: {duration_s}")
-
-    diff = -((duration_s - duration_n) / duration_n) * 100
-    print(f"\nThere is a time difference of {diff:.2f}%")
-
-
-if __name__ == '__main__':
-    main()
-
-
 def SPIMI(ALL_TEXTS: list) -> timedelta:
     """
     Implement a SPIMI-style indexer.
@@ -98,9 +73,6 @@ def naive(ALL_TEXTS: list) -> timedelta:
     # Create a list of (term, docID) pairs
     F: List[Tuple] = []
 
-    tick = time.perf_counter()  # Start timing
-    tock = None  # Variable for when timing ends
-
     print(f"\nCreating (term, docID) pairs for all articles. This will take about 30 seconds...")
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
@@ -125,3 +97,28 @@ def naive(ALL_TEXTS: list) -> timedelta:
     save_to_file(index, mode=RunMode.NAIVE)
 
     return duration
+
+
+def main():
+    # Get all reuters objects in the corpus
+    print('\n---------- Getting Articles ----------')
+    ALL_TEXTS: List[Tag] = get_texts()
+
+    # Compute the stats for all documents, necessary for BM25
+    print('\n---------- Computing Statistics for all Articles ----------')
+    compute_doc_stats(ALL_TEXTS)
+
+    duration_n = naive(ALL_TEXTS)
+    duration_s = SPIMI(ALL_TEXTS)
+
+    print('\n---------- Timing Results ----------')
+
+    print(f"\nNaive: Time taken to index first 10,000 terms: {duration_n}")
+    print(f"\nSPIMI: Time taken to index first 10,000 terms: {duration_s}")
+
+    diff = -((duration_s - duration_n) / duration_n) * 100
+    print(f"\nThere is a time difference of {diff:.2f}%")
+
+
+if __name__ == '__main__':
+    main()
