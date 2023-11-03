@@ -8,12 +8,36 @@ from bs4 import Tag
 from utilities import RunMode, process_document, save_to_file, create_pairs, create_index, compute_doc_stats, get_texts
 
 
-def SPIMI(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
+def main():
+    # Get all reuters objects in the corpus
+    print('\n---------- Getting Articles ----------')
+    ALL_TEXTS: List[Tag] = get_texts()
+
+    # Compute the stats for all documents, necessary for BM25
+    print('\n---------- Computing Statistics for all Articles ----------')
+    compute_doc_stats(ALL_TEXTS)
+
+    duration_n = naive(ALL_TEXTS)
+    duration_s = SPIMI(ALL_TEXTS)
+
+    print('\n---------- Timing Results ----------')
+
+    print(f"\nNaive: Time taken to index first 10,000 terms: {duration_n}")
+    print(f"\nSPIMI: Time taken to index first 10,000 terms: {duration_s}")
+
+    diff = -((duration_s - duration_n) / duration_n) * 100
+    print(f"\nThere is a time difference of {diff:.2f}%")
+
+
+if __name__ == '__main__':
+    main()
+
+
+def SPIMI(ALL_TEXTS: list) -> timedelta:
     """
     Implement a SPIMI-style indexer.
 
     :param ALL_TEXTS: The list of documents to index
-    :param full_timing: Whether to stop timing at the end of the process, or after 10,000 documents
     :return: How long the process took, according to `full_timing`
     """
 
@@ -41,9 +65,9 @@ def SPIMI(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
             # Append (docID, term frequency) to the postings list for this token
             index[token] += [(DOC_ID, tf)]
 
-        # If timing stops after 10,000 documents
-        if not full_timing and DOC_ID == 10_000:
-            tock = time.perf_counter()
+            # After processing 10,000th term, stop timing
+            if len(index) == 10_000:
+                tock = time.perf_counter()
 
     # Remove duplicates in postings lists
     index = {k: list(set(v)) for k, v in index.items()}
@@ -55,22 +79,17 @@ def SPIMI(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
     for term in index:
         index[term] = sorted(index[term])
 
-    # If timing stops at the end of the process
-    if full_timing:
-        tock = time.perf_counter()
-
     # Save results to file
     save_to_file(index, mode=RunMode.SPIMI)
 
     return timedelta(seconds=(tock - tick))
 
 
-def naive(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
+def naive(ALL_TEXTS: list) -> timedelta:
     """
     Recreate the Project 2 Subproject 1 indexer.
 
     :param ALL_TEXTS: The list of documents to index
-    :param full_timing: Whether to stop timing at the end of the process, or after 10,000 documents
     :return: How long the process took, according to `full_timing`
     """
 
@@ -95,50 +114,14 @@ def naive(ALL_TEXTS: list, full_timing: bool = False) -> timedelta:
         # Create (term, docID) pairs from those tokens, and add to existing list
         F.extend(create_pairs(tokens, DOC_ID))
 
-        # If timing stops after 10,000 documents
-        if not full_timing and DOC_ID == 10_000:
-            tock = time.perf_counter()
-
     # Sort the list of tuples by term
     F = sorted(F)
 
-    if full_timing:
-        tock = time.perf_counter()
-
     # Create an index for the list of (term, docID) pairs
     print("\nCreating inverted index")
-    index = create_index(F)
+    index, duration = create_index(F)
 
     # Save results to file
     save_to_file(index, mode=RunMode.NAIVE)
 
-    return timedelta(seconds=(tock - tick))
-
-
-def main():
-    # Get all reuters objects in the corpus
-    ALL_TEXTS: List[Tag] = get_texts()
-
-    # Compute the stats for all documents, necessary for BM25
-    compute_doc_stats(ALL_TEXTS)
-
-    FULL_TIMING = False
-
-    duration_n = naive(ALL_TEXTS, FULL_TIMING)
-    duration_s = SPIMI(ALL_TEXTS, FULL_TIMING)
-
-    print('\n---------- Timing Results ----------')
-
-    if not FULL_TIMING:
-        print(f"\nNaive: Time taken to index first 10,000 documents: {duration_n}")
-        print(f"\nSPIMI: Time taken to index first 10,000 documents: {duration_s}")
-    else:
-        print(f"\nNaive: Time taken to index all documents: {duration_n}")
-        print(f"\nSPIMI: Time taken to index all documents: {duration_s}")
-
-    diff = -((duration_s - duration_n) / duration_n) * 100
-    print(f"\nThere is a time difference of {diff:.2f}%")
-
-
-if __name__ == '__main__':
-    main()
+    return duration

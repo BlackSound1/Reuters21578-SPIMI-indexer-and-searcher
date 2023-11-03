@@ -1,4 +1,6 @@
 import json
+import time
+from datetime import timedelta
 from collections import defaultdict
 from enum import Enum
 from glob import glob
@@ -153,7 +155,7 @@ def clean(text: str) -> str:
     return text
 
 
-def create_index(pairs: List[Tuple[str, int]]) -> Dict[str, list]:
+def create_index(pairs: List[Tuple[str, int]]) -> Tuple[Dict[str, list], timedelta]:
     """
     Create an inverted index based on the list of (term, docID) tuples.
 
@@ -164,6 +166,10 @@ def create_index(pairs: List[Tuple[str, int]]) -> Dict[str, list]:
     # Create a defaultdict to allow for saving to dictionary keys that don't yet exist
     index = defaultdict(list)
 
+    # Start timing
+    tick = time.perf_counter()
+    tock = None
+
     # For each (term, docID) pair, get the term and docID and add them to the index
     for tup in pairs:
         this_term = tup[0]
@@ -171,7 +177,14 @@ def create_index(pairs: List[Tuple[str, int]]) -> Dict[str, list]:
 
         index[this_term] += [this_doc_id]
 
-    return dict(index)
+        # After 10,000th term, stop timing
+        if len(index) == 10_000:
+            tock = time.perf_counter()
+
+    # Compute duration
+    duration = timedelta(seconds=(tock - tick))
+
+    return dict(index), duration
 
 
 def create_pairs(tokens: List[str], docID: int) -> list:
