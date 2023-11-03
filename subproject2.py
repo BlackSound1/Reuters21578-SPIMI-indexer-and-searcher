@@ -17,14 +17,14 @@ def single(query: str) -> None:
     # Search the naive index for the single-term query
     naive_postings = naive[query]
 
-    print(f"\nGiven the query {query}: for the naive indexer, found postings: {naive_postings}")
+    print(f"\nGiven the query \"{query}\": for the naive indexer, found postings: {naive_postings}")
 
     # OPERATE ON SPIMI INDEX
 
     # Search the SPIMI index for the single-term query
     spimi_postings = [posting[0] for posting in SPIMI[query]]
 
-    print(f"\nGiven the query {query}: for the SPIMI indexer, found postings: {spimi_postings}")
+    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
 
 
 def unranked(query: str) -> None:
@@ -38,21 +38,6 @@ def unranked(query: str) -> None:
     # Turn query into a list of keywords, stripping AND
     query_clean = [w.strip() for w in query.split('AND')]
 
-    # OPERATE ON NAIVE INDEX
-
-    # Start with all documents. Since we will find intersections, need to start with all documents in a set, so first
-    # keyword can intersect with it
-    naive_postings = set(i for i in range(1, 10_001))
-
-    # Go through each keyword in the query
-    for q in query_clean:
-        # Get the postings list for the query term in the naive index. Intersect it with what we have above
-        naive_postings = naive_postings.intersection(naive[q])
-
-    print(f"\nGiven the query {query}: for the naive indexer, found postings: {list(naive_postings)}")
-
-    # OPERATE ON SPIMI INDEX
-
     # Start with all documents. Since we will find intersections, need to start with all documents in a set, so first
     # keyword can intersect with it
     spimi_postings = set(i for i in range(1, 10_001))  # Start with all documents
@@ -62,7 +47,7 @@ def unranked(query: str) -> None:
         # Get the postings list for the query term in the SPIMI index. Intersect it with what we have above
         spimi_postings = spimi_postings.intersection({posting[0] for posting in SPIMI[q]})
 
-    print(f"\nGiven the query {query}: for the SPIMI indexer, found postings: {list(spimi_postings)}")
+    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {list(spimi_postings)}")
 
 
 def ranked(query: str, top_k: int = 10) -> None:
@@ -75,39 +60,6 @@ def ranked(query: str, top_k: int = 10) -> None:
 
     # Turn query into a list of keywords, stripping OR
     query_clean = [w.strip() for w in query.split('OR')]
-
-    # OPERATE ON NAIVE INDEX
-
-    # Create an empty list for all postings found in this query
-    naive_postings = []
-
-    # Go through all query terms
-    for q in query_clean:
-
-        # Add the found postings to the main list
-        naive_postings += naive[q]
-
-    # Sort the postings list found by frequency of documents, such that postings with higher frequency appear first
-    naive_postings = sorted(naive_postings, key=naive_postings.count, reverse=True)
-
-    # Create a dict to associate documents with how many query terms in that document
-    naive_result = {}
-
-    # Go through each posting that was found
-    for posting in naive_postings:
-
-        # If we've reached the top_k documents, stop
-        if len(naive_result.keys()) == top_k:
-            break
-
-        # If we don't already have this posting in the dictionary, add it and its frequency in the main postings list
-        if posting not in naive_result.keys():
-            naive_result[posting] = naive_postings.count(posting)
-
-    print(f"\nGiven the query {query}: for the naive indexer, found postings " +
-          "({posting: count}): " + f"{naive_result}")
-
-    # OPERATE ON SPIMI INDEX
 
     # Create an empty list for all postings found in this query
     spimi_postings = []
@@ -135,7 +87,7 @@ def ranked(query: str, top_k: int = 10) -> None:
         if posting not in spimi_result.keys():
             spimi_result[posting] = spimi_postings.count(posting)
 
-    print(f"\nGiven the query {query}: for the SPIMI indexer, found postings " +
+    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found the top {top_k} postings " +
           "({posting: count}): " + f"{spimi_result}")
 
 
@@ -214,7 +166,8 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
     # Get only top k results
     RSV_top_k = list(RSV.items())[: top_k]
 
-    print(RSV_top_k)
+    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found the top {top_k} postings " +
+          "({posting: RSV score}): " + f"{RSV_top_k}")
 
 
 def main():
@@ -232,9 +185,16 @@ def main():
         global SPIMI
         SPIMI = json.load(f)
 
-    # single(test1)
-    # unranked(test2)
-    # ranked(test3)
+    print(f'\n---------- Test Query (a): "{test1}" ----------')
+    single(test1)
+
+    print(f'\n---------- Test Query (b): "{test2}" ----------')
+    unranked(test2)
+
+    print(f'\n---------- Test Query (c): "{test3}" ----------')
+    ranked(test3)
+
+    print(f'\n---------- Test Query (d): "{test4}" ----------')
     BM25(test4)
 
 
