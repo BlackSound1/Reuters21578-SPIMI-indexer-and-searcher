@@ -1,6 +1,9 @@
 import json
 from math import log
+from pathlib import Path
 
+
+# Define global variables for the indexes
 naive: dict
 SPIMI: dict
 
@@ -19,12 +22,20 @@ def single(query: str) -> None:
 
     print(f"\nGiven the query \"{query}\": for the naive indexer, found postings: {naive_postings}")
 
+    # Save results to file
+    with open(f'query_results/{query}-naive.txt', 'wt') as f:
+        json.dump(naive_postings, f)
+
     # OPERATE ON SPIMI INDEX
 
     # Search the SPIMI index for the single-term query
     spimi_postings = [posting[0] for posting in SPIMI[query]]
 
     print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
+
+    # Save results to file
+    with open(f'query_results/{query}-SPIMI.txt', 'wt') as f:
+        json.dump(spimi_postings, f)
 
 
 def unranked(query: str) -> None:
@@ -47,7 +58,13 @@ def unranked(query: str) -> None:
         # Get the postings list for the query term in the SPIMI index. Intersect it with what we have above
         spimi_postings = spimi_postings.intersection({posting[0] for posting in SPIMI[q]})
 
-    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {list(spimi_postings)}")
+    spimi_postings = list(spimi_postings)
+
+    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
+
+    # Write to file
+    with open(f'query_results/{query}.txt', 'wt') as f:
+        json.dump(spimi_postings, f)
 
 
 def ranked(query: str, top_k: int = 10) -> None:
@@ -90,6 +107,10 @@ def ranked(query: str, top_k: int = 10) -> None:
     print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found the top {top_k} postings " +
           "({posting: count}): " + f"{spimi_result}")
 
+    # Write to file
+    with open(f'query_results/{query}.txt', 'wt') as f:
+        json.dump(spimi_result, f)
+
 
 def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None:
     """
@@ -103,11 +124,7 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
     :param top_k: Return the top k results to avoid overwhelming the user
     """
 
-    # For each document in collection:
-    # Use the terms in the query to compute the RSV for that document
-    # Need N (# docs in collection), tf_td (count of term t in document d), L_d (length of doc d),
-    # L_ave (avg. doc length in collection),
-
+    # Create the dict associating each document ID to its RSV
     RSV = {}
 
     # Turn query into a list of keywords
@@ -169,8 +186,15 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
     print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found the top {top_k} postings " +
           "({posting: RSV score}): " + f"{RSV_top_k}")
 
+    # Write to file
+    with open(f'query_results/{query}.txt', 'wt') as f:
+        json.dump(RSV_top_k, f)
+
 
 def main():
+    # Make sure the query_results/ folder exists
+    Path('query_results/').mkdir(exist_ok=True, parents=True)
+
     test1 = "Bush"  # Single word query
     test2 = "drug AND bankruptcy"  # Multiple keyword query (Unranked)
     test3 = "Democrat OR welfare OR healthcare OR reform OR policy"  # Multiple keyword query (Ranked)
