@@ -1,3 +1,4 @@
+import json
 import time
 from collections import defaultdict
 from datetime import timedelta
@@ -118,6 +119,10 @@ def main():
 
     diff = -((duration_s - duration_n) / duration_n) * 100
     print(f"\nThere is a time difference of {diff:.2f}%")
+
+    # Save timing results to file
+    with open('stats/timings.txt', 'wt') as f:
+        json.dump({'naive_time': str(duration_n), 'spimi_time': str(duration_s), 'difference': f'{diff:.2f}'}, f)
 
 
 if __name__ == '__main__':
