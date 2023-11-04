@@ -172,13 +172,16 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
             rational_factor = numerator / denominator
 
             # Add to the RSV_d value for this document, the result of multiplying the two factors
-            RSV_d += round(log_factor * rational_factor, 2)
+            RSV_d += log_factor * rational_factor
 
         # Add the RSV_d value for this document to the dictionary associating each document with its RSV
         RSV[d] = RSV_d
 
     # Sort the documents by highest RSV values
     RSV = {k: v for k, v in sorted(RSV.items(), key=lambda item: item[1], reverse=True)}
+
+    # Round RSV to 2 decimal places
+    RSV = {k: round(v, 2) for k, v in RSV.items()}
 
     # Get only top k results
     RSV_top_k = list(RSV.items())[: top_k]
