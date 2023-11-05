@@ -199,7 +199,7 @@ def main():
     Path('query_results/').mkdir(exist_ok=True, parents=True)
 
     test1 = "Bush"  # Single word query
-    test2 = "drug AND bankruptcy"  # Multiple keyword query (Unranked)
+    test2 = "drug AND company AND bankruptcy"  # Multiple keyword query (Unranked)
     test3 = "Democrat OR welfare OR healthcare OR reform OR policy"  # Multiple keyword query (Ranked)
     test4 = "Democrat welfare healthcare reform policy"  # BM25 query
 
