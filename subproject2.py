@@ -157,7 +157,8 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
             # Find the term frequency for this term. This is represented by number of times the term t
             # appears in document d. The 2nd term in each of the tuples in the postings list.
             # Go through each tuple in the postings list, and the tf_td is the 2nd value in the tuple whose
-            # first value is d
+            # first value is d. This code may fail if this term is not found in this document. In that case,
+            # I make sure tf_td is 0.
             try:
                 tf_td = [tup[1] for tup in SPIMI[t] if tup[0] == d][0]
             except IndexError:
