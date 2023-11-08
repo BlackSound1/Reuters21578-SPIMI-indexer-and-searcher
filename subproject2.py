@@ -9,25 +9,28 @@ naive: dict
 SPIMI: dict
 
 
-def single(query: str, dir: str) -> None:
+def single(query: str, dir: str, both: bool = False) -> None:
     """
     Performs a single-term search for the given query on the naive and SPIMI indexes. Compares results.
 
     :param query: The single-term query to search for
     :param dir: The subdirectory to save to
+    :param both: Whether to check both Naive and SPIMI indexes
     """
 
-    # OPERATE ON NAIVE INDEX
+    # If we're searching both Naive and SPIMI
+    if both:
+        # OPERATE ON NAIVE INDEX
 
-    # Search the naive index for the single-term query
-    naive_postings = naive[query]
+        # Search the naive index for the single-term query
+        naive_postings = naive[query]
 
-    print(f"\nGiven the query \"{query}\": for the naive indexer, found postings: {naive_postings}")
+        print(f"\nGiven the query \"{query}\": for the naive indexer, found postings: {naive_postings}")
 
-    # Save results to file
-    Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
-    with open(f'query_results/{dir}/{query}-naive.txt', 'wt') as f:
-        json.dump(naive_postings, f)
+        # Save results to file
+        Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
+        with open(f'query_results/{dir}/{query}-naive.txt', 'wt') as f:
+            json.dump(naive_postings, f)
 
     # OPERATE ON SPIMI INDEX
 
@@ -250,18 +253,18 @@ def main():
     print(f'\n~~~ Project 2 Test Queries ~~~')
 
     # Project 2 single-term queries (test queries)
-    single('abnormally', '3. other/P2-test')
-    single('017', '3. other/P2-test')
-    single('Zweig', '3. other/P2-test')
+    single('abnormally', '3. other/P2-test', both=True)
+    single('017', '3. other/P2-test', both=True)
+    single('Zweig', '3. other/P2-test', both=True)
 
     print(f'\n~~~ Project 2 Sample Queries ~~~')
     # Create Porter stemmer
     stemmer = PorterStemmer()
 
     # Project 2 single-term queries (sample queries). Perform stemming and case-folding like in Project 2
-    single(stemmer.stem('males').lower(), '3. other/P2-sample')
-    single(stemmer.stem('CORRECTED').lower(), '3. other/P2-sample')
-    single(stemmer.stem('texts').lower(), '3. other/P2-sample')
+    single(stemmer.stem('males').lower(), '3. other/P2-sample', both=True)
+    single(stemmer.stem('CORRECTED').lower(), '3. other/P2-sample', both=True)
+    single(stemmer.stem('texts').lower(), '3. other/P2-sample', both=True)
 
     print(f'\n======= Other Unranked Boolean "AND" Queries =======')
     unranked("Queen AND King", '3. other/AND')
