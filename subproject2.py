@@ -2,17 +2,19 @@ import json
 from math import log
 from pathlib import Path
 
+from nltk.stem import PorterStemmer
 
 # Define global variables for the indexes
 naive: dict
 SPIMI: dict
 
 
-def single(query: str) -> None:
+def single(query: str, dir: str) -> None:
     """
     Performs a single-term search for the given query on the naive and SPIMI indexes. Compares results.
 
     :param query: The single-term query to search for
+    :param dir: The subdirectory to save to
     """
 
     # OPERATE ON NAIVE INDEX
@@ -23,7 +25,8 @@ def single(query: str) -> None:
     print(f"\nGiven the query \"{query}\": for the naive indexer, found postings: {naive_postings}")
 
     # Save results to file
-    with open(f'query_results/{query}-naive.txt', 'wt') as f:
+    Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
+    with open(f'query_results/{dir}/{query}-naive.txt', 'wt') as f:
         json.dump(naive_postings, f)
 
     # OPERATE ON SPIMI INDEX
@@ -34,16 +37,18 @@ def single(query: str) -> None:
     print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
 
     # Save results to file
-    with open(f'query_results/{query}-SPIMI.txt', 'wt') as f:
+    Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
+    with open(f'query_results/{dir}/{query}-SPIMI.txt', 'wt') as f:
         json.dump(spimi_postings, f)
 
 
-def unranked(query: str) -> None:
+def unranked(query: str, dir: str) -> None:
     """
     Performs a search on the naive and SPIMI indexes with a given multi-keyword query, each keyword separated by `AND`.
     Compare the results.
 
     :param query: The multi-keyword query to search for
+    :param dir: The subdirectory to save to
     """
 
     # Turn query into a list of keywords, stripping AND
@@ -63,15 +68,17 @@ def unranked(query: str) -> None:
     print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
 
     # Write to file
-    with open(f'query_results/{query}.txt', 'wt') as f:
+    Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
+    with open(f'query_results/{dir}/{query}.txt', 'wt') as f:
         json.dump(spimi_postings, f)
 
 
-def ranked(query: str, top_k: int = 10) -> None:
+def ranked(query: str, dir: str, top_k: int = 10) -> None:
     """
     Performed ranked search on naive and SPIMI index, given a multi-keyword OR query. Compare results.
 
     :param query: The multi-keyword query to search for
+    :param dir: The subdirectory to save to
     :param top_k: The number of best results to return e.g. top 10 results only.
     """
 
@@ -83,7 +90,6 @@ def ranked(query: str, top_k: int = 10) -> None:
 
     # Go through all query terms
     for q in query_clean:
-
         # Add the found postings to the main list
         spimi_postings += [posting[0] for posting in SPIMI[q]]
 
@@ -108,17 +114,19 @@ def ranked(query: str, top_k: int = 10) -> None:
           "({posting: count}): " + f"{spimi_result}")
 
     # Write to file
-    with open(f'query_results/{query}.txt', 'wt') as f:
+    Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
+    with open(f'query_results/{dir}/{query}.txt', 'wt') as f:
         json.dump(spimi_result, f)
 
 
-def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None:
+def BM25(query: str, dir: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None:
     """
     Compute BM25 ranking for a given query.
 
     Based off the first formula in the book that has k_1 and b parameters (p. 233, fig. 11.32).
 
     :param query: The query to find rankings for
+    :param dir: The subdirectory to save to
     :param k_1: A free parameter, typically between 1.2 and 2.0
     :param b: A free parameter, typically 0.75
     :param top_k: Return the top k results to avoid overwhelming the user
@@ -191,18 +199,14 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
           "({posting: RSV score}): " + f"{RSV_top_k}")
 
     # Write to file
-    with open(f'query_results/{query}.txt', 'wt') as f:
+    Path(f'query_results/{dir}').mkdir(exist_ok=True, parents=True)
+    with open(f'query_results/{dir}/{query}.txt', 'wt') as f:
         json.dump(RSV_top_k, f)
 
 
 def main():
     # Make sure the query_results/ folder exists
     Path('query_results/').mkdir(exist_ok=True, parents=True)
-
-    test1 = "Bush"  # Single word query
-    test2 = "drug AND company AND bankruptcy"  # Multiple keyword query (Unranked)
-    test3 = "Democrat OR welfare OR healthcare OR reform OR policy"  # Multiple keyword query (Ranked)
-    test4 = "Democrat welfare healthcare reform policy"  # BM25 query
 
     # Load indexes
     with open('index/naive_index.txt', 'rt') as f:
@@ -213,17 +217,51 @@ def main():
         global SPIMI
         SPIMI = json.load(f)
 
-    print(f'\n---------- Test Query (a): "{test1}" ----------')
-    single(test1)
+    print(f'\n---------- Development Queries ----------')
 
-    print(f'\n---------- Test Query (b): "{test2}" ----------')
-    unranked(test2)
+    test1 = "Bush"  # Single word query
+    test2 = "drug AND company AND bankruptcy"  # Multiple keyword query (Unranked)
+    test3 = "Democrat OR welfare OR healthcare OR reform OR policy"  # Multiple keyword query (Ranked)
+    test4 = "Democrat welfare healthcare reform policy"  # BM25 query
 
-    print(f'\n---------- Test Query (c): "{test3}" ----------')
-    ranked(test3)
+    print(f'\n======= (a): "{test1}" =======')
+    single(test1, '1. development')
 
-    print(f'\n---------- Test Query (d): "{test4}" ----------')
-    BM25(test4)
+    print(f'\n======= (b): "{test2}" =======')
+    unranked(test2, '1. development')
+
+    print(f'\n======= (c): "{test3}" =======')
+    ranked(test3, '1. development')
+
+    print(f'\n======= (d): "{test4}" =======')
+    BM25(test4, '1. development')
+
+    print(f'\n---------- Test Queries ----------')
+
+    # Treat the information needs as literal queries
+    BM25("Democrats welfare and healthcare reform policies", '2. test')
+    BM25("Drug company bankruptcies", '2. test')
+    BM25("George Bush", '2. test')
+
+    print(f'\n---------- Other Queries ----------')
+
+    print(f'\n======= Single-Term Queries from Project 2 =======')
+
+    print(f'\n~~~ Project 2 Test Queries ~~~')
+
+    # Project 2 single-term queries (test queries)
+    single('abnormally', '3. other/P2-test')
+    single('017', '3. other/P2-test')
+    single('Zweig', '3. other/P2-test')
+
+    print(f'\n~~~ Project 2 Sample Queries ~~~')
+    # Create Porter stemmer
+    stemmer = PorterStemmer()
+
+    # Project 2 single-term queries (sample queries). Perform stemming and case-folding like in Project 2
+    single(stemmer.stem('males').lower(), '3. other/P2-sample')
+    single(stemmer.stem('CORRECTED').lower(), '3. other/P2-sample')
+    single(stemmer.stem('texts').lower(), '3. other/P2-sample')
 
 
 if __name__ == '__main__':
