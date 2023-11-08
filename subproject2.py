@@ -263,6 +263,24 @@ def main():
     single(stemmer.stem('CORRECTED').lower(), '3. other/P2-sample')
     single(stemmer.stem('texts').lower(), '3. other/P2-sample')
 
+    print(f'\n======= Other Unranked Boolean "AND" Queries =======')
+    unranked("Queen AND King", '3. other/AND')
+    unranked("Queen AND Royal", '3. other/AND')
+    unranked("King AND Royal", '3. other/AND')
+    unranked("Queen AND King AND Royal", '3. other/AND')
+    unranked("Royal AND family", '3. other/AND')
+
+    print(f'\n======= Other Ranked Boolean "OR" Queries =======')
+    ranked("Cancer OR treatment", "3. other/OR")
+    ranked("Cancer OR treatment OR doctor", "3. other/OR")
+    ranked("Cancer OR treatment OR doctor OR hospital", "3. other/OR")
+
+    print(f'\n======= Other Ranked BM25 Queries =======')
+    BM25("Ecuador in Latin America", '3. other/BM25')
+    BM25("history of Europe", '3. other/BM25')
+    BM25("great movies and books", '3. other/BM25')
+    BM25("India Bangladesh and Pakistan", '3. other/BM25')
+
 
 if __name__ == '__main__':
     main()
