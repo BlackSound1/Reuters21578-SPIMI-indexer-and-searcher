@@ -1,4 +1,4 @@
-# COMP479P3
+# Reuters21578 SPIMI Indexer and Searcher
 
 ## Installation
 
