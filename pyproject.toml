@@ -1,0 +1,10 @@
+[project]
+name = "spimi-indexer"
+version = "0.1.0"
+description = "Creates naive and SPIMI indexes for the Reuters 21578 corpus. Ranks results, including BM25"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "nltk>=3.9.4",
+]
