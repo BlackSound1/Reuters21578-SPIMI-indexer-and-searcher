@@ -6,7 +6,6 @@ from enum import Enum
 from glob import glob
 from pathlib import Path
 from re import sub
-from typing import List, Tuple, Dict
 
 from bs4 import Tag, BeautifulSoup
 from nltk import word_tokenize
@@ -14,19 +13,18 @@ from nltk import word_tokenize
 
 class RunMode(str, Enum):
     """Define a run mode for subproject 1. Either run in naive mode (a la Project 2) or SPIMI mode"""
-
     SPIMI = 'spimi'
     NAIVE = 'naive'
 
 
-def compute_doc_stats(ALL_TEXTS: list) -> None:
+def compute_doc_stats(ALL_TEXTS: list[Tag]) -> None:
     """
     Compute the sizes of each document, and the average sie of all documents
 
     :param ALL_TEXTS: The list of all documents
     """
 
-    doc_sizes = {}
+    doc_sizes: dict[int, int] = {}
 
     # Go through each text in the corpus
     for text in ALL_TEXTS:
@@ -54,7 +52,7 @@ def compute_doc_stats(ALL_TEXTS: list) -> None:
         f.write(str(avg_size))
 
 
-def get_texts() -> List[Tag]:
+def get_texts() -> list[Tag]:
     """
     Read the Reuters corpus to get all the articles
 
@@ -62,12 +60,12 @@ def get_texts() -> List[Tag]:
     """
 
     # Get a list of all corpus files to read
-    CORPUS_FILES: List[Path] = [Path(p) for p in glob("../reuters21578/*.sgm")]
+    CORPUS_FILES: list[Path] = [Path(p) for p in glob("../reuters21578/*.sgm")]
     dirname = CORPUS_FILES[0].parent
     print(f"\nIn directory: {dirname}, found files:\n\n{[f.name for f in CORPUS_FILES]}\n")
 
     # Create a list, to be populated later, of actual articles in this corpus
-    all_articles: List[Tag] = []
+    all_articles: list[Tag] = []
 
     # Loop though each file in the corpus
     for file in CORPUS_FILES:
@@ -87,7 +85,7 @@ def get_texts() -> List[Tag]:
     return all_articles
 
 
-def process_document(document: Tag, duplicates: bool = False) -> list:
+def process_document(document: Tag, duplicates: bool = False) -> list[str]:
     """
     Perform various textual processing steps on a given document to get ready for future steps.
 
@@ -106,7 +104,7 @@ def process_document(document: Tag, duplicates: bool = False) -> list:
     cleaned_text = clean(this_text)
 
     # Tokenize the text
-    tokenized: List[str] = word_tokenize(cleaned_text)
+    tokenized: list[str] = word_tokenize(cleaned_text)
 
     # Remove duplicates if required
     if not duplicates:
@@ -155,7 +153,7 @@ def clean(text: str) -> str:
     return text
 
 
-def create_index(pairs: List[Tuple[str, int]]) -> Tuple[Dict[str, list], timedelta]:
+def create_index(pairs: list[tuple[str, int]]) -> tuple[dict[str, list[int]], timedelta]:
     """
     Create an inverted index based on the list of (term, docID) tuples.
 
@@ -164,11 +162,11 @@ def create_index(pairs: List[Tuple[str, int]]) -> Tuple[Dict[str, list], timedel
     """
 
     # Create a defaultdict to allow for saving to dictionary keys that don't yet exist
-    index = defaultdict(list)
+    index: defaultdict[str, list[int]] = defaultdict(list)
 
     # Start timing
     tick = time.perf_counter()
-    tock = None
+    tock = 0.0
 
     # For each (term, docID) pair, get the term and docID and add them to the index
     for tup in pairs:
@@ -187,7 +185,7 @@ def create_index(pairs: List[Tuple[str, int]]) -> Tuple[Dict[str, list], timedel
     return dict(index), duration
 
 
-def create_pairs(tokens: List[str], docID: int) -> list:
+def create_pairs(tokens: list[str], docID: int) -> list[tuple[str, int]]:
     """
     Create (term, docID) pairs based on the given list of tokens
 
@@ -195,10 +193,7 @@ def create_pairs(tokens: List[str], docID: int) -> list:
     :param docID: The docID representing this article
     :return: A list of (term, docID) pairs
     """
-
-    pairs: List[Tuple[str, int]] = [(token, docID) for token in tokens]
-
-    return pairs
+    return [(token, docID) for token in tokens]
 
 
 def save_to_file(index: dict, mode: RunMode) -> None:

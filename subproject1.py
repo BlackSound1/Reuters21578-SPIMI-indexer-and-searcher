@@ -2,14 +2,14 @@ import json
 import time
 from collections import defaultdict
 from datetime import timedelta
-from typing import List, Tuple
+from typing import List
 
 from bs4 import Tag
 
 from utilities import RunMode, process_document, save_to_file, create_pairs, create_index, compute_doc_stats, get_texts
 
 
-def SPIMI(ALL_TEXTS: list) -> timedelta:
+def SPIMI(ALL_TEXTS: list[Tag]) -> timedelta:
     """
     Implement a SPIMI-style indexer.
 
@@ -20,10 +20,10 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
     print('\n---------- SPIMI Indexer ----------')
 
     print("\nCreating inverted index...")
-    index = defaultdict(list)
+    index: defaultdict[str, list[tuple[int, int]]] = defaultdict(list)
 
     tick = time.perf_counter()  # Start timing
-    tock = None  # Variable for when timing ends
+    tock: float = 0.0  # Variable for when timing ends
 
     # Go through each text in the corpus and update the index based on it
     for text in ALL_TEXTS:
@@ -61,7 +61,7 @@ def SPIMI(ALL_TEXTS: list) -> timedelta:
     return timedelta(seconds=(tock - tick))
 
 
-def naive(ALL_TEXTS: list) -> timedelta:
+def naive(ALL_TEXTS: list[Tag]) -> timedelta:
     """
     Recreate the Project 2 Subproject 1 indexer.
 
@@ -72,9 +72,9 @@ def naive(ALL_TEXTS: list) -> timedelta:
     print('\n---------- Naive Indexer ----------')
 
     # Create a list of (term, docID) pairs
-    F: List[Tuple] = []
+    F: list[tuple[str, int]] = []
 
-    print(f"\nCreating (term, docID) pairs for all articles...")
+    print("\nCreating (term, docID) pairs for all articles...")
 
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
