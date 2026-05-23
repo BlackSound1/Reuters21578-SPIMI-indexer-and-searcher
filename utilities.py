@@ -13,8 +13,9 @@ from nltk import word_tokenize
 
 class RunMode(str, Enum):
     """Define a run mode for subproject 1. Either run in naive mode (a la Project 2) or SPIMI mode"""
-    SPIMI = 'spimi'
-    NAIVE = 'naive'
+
+    SPIMI = "spimi"
+    NAIVE = "naive"
 
 
 def compute_doc_stats(ALL_TEXTS: list[Tag]) -> None:
@@ -29,7 +30,7 @@ def compute_doc_stats(ALL_TEXTS: list[Tag]) -> None:
     # Go through each text in the corpus
     for text in ALL_TEXTS:
         # Find the docID for this document
-        DOC_ID = int(text.attrs['newid'])
+        DOC_ID = int(text.attrs["newid"])
 
         # Create list of tokens without removing duplicates
         tokens = process_document(text, duplicates=True)
@@ -43,12 +44,12 @@ def compute_doc_stats(ALL_TEXTS: list[Tag]) -> None:
     avg_size = round(sum(doc_sizes.values()) / len(doc_sizes.values()), 2)
 
     # Save results to files in the 'stats/' folder
-    Path('stats/').mkdir(exist_ok=True, parents=True)
+    Path("stats/").mkdir(exist_ok=True, parents=True)
 
-    with open('stats/doc_sizes.txt', 'wt') as f:
+    with open("stats/doc_sizes.txt", "wt") as f:
         json.dump(doc_sizes, f)
 
-    with open('stats/avg_size.txt', 'wt') as f:
+    with open("stats/avg_size.txt", "wt") as f:
         f.write(str(avg_size))
 
 
@@ -60,9 +61,13 @@ def get_texts() -> list[Tag]:
     """
 
     # Get a list of all corpus files to read
-    CORPUS_FILES: list[Path] = [Path(p) for p in glob("../reuters21578/*.sgm")]
+    CORPUS_FILES: list[Path] = [
+        Path(p) for p in glob("/home/ms/Documents/reuters21578/*.sgm")
+    ]
     dirname = CORPUS_FILES[0].parent
-    print(f"\nIn directory: {dirname}, found files:\n\n{[f.name for f in CORPUS_FILES]}\n")
+    print(
+        f"\nIn directory: {dirname}, found files:\n\n{[f.name for f in CORPUS_FILES]}\n"
+    )
 
     # Create a list, to be populated later, of actual articles in this corpus
     all_articles: list[Tag] = []
@@ -72,11 +77,11 @@ def get_texts() -> list[Tag]:
         print(f"Reading file: {file.name}")
 
         # Read the files contents as HTML
-        with open(file, 'r', encoding='latin-1') as f:
-            contents = BeautifulSoup(f, features='html.parser')
+        with open(file, "r", encoding="latin-1") as f:
+            contents = BeautifulSoup(f, features="html.parser")
 
         # Filter this content by 'reuters' tags
-        articles = contents('reuters')
+        articles = contents("reuters")
 
         # Add to the all_articles list, the list of articles found in this file. Use .extend to do so in a 'flat' way
         # i.e. Don't want: [1, [2, [3, [4]]]], want: [1, 2, 3, 4]
@@ -95,10 +100,12 @@ def process_document(document: Tag, duplicates: bool = False) -> list[str]:
     """
 
     # Text is given as an individual document. Get the only document text in the list of 'text' tags in the document
-    doc_text = document('text')[0]
+    doc_text = document("text")[0]
 
     # Get the text of the article without the 'dateline' or 'title' tag, as this adds clutter
-    this_text = '\n'.join(tag.text for tag in doc_text.children if tag.name not in ['dateline', 'title'])
+    this_text = "\n".join(
+        tag.text for tag in doc_text.children if tag.name not in ["dateline", "title"]
+    )
 
     # Clean the text, so that I can tokenize more properly
     cleaned_text = clean(this_text)
@@ -126,34 +133,36 @@ def clean(text: str) -> str:
     """
 
     # Make sure all newline characters have a space after to prevent future tokenization errors, as found in experiment
-    text = text.replace('\n', '\n ')
+    text = text.replace("\n", "\n ")
 
     # Remove certain unicode control characters, as found in experiment
-    text = sub(r'\x03|\x02|\x07|\x05|\xfc|\u007F', '', text)
+    text = sub(r"\x03|\x02|\x07|\x05|\xfc|\u007F", "", text)
 
     # Simplify acronyms to their constituent letters. i.e. changes "U.S." to "US"
-    text = sub(r"(?<!\w)([A-Za-z])\.", r'\1', text)
+    text = sub(r"(?<!\w)([A-Za-z])\.", r"\1", text)
 
     # Remove all punctuation and special characters
-    text = sub(r"[()<>{}\[\]!$=@&*-/+.,:;?\"]+", ' ', text)
+    text = sub(r"[()<>{}\[\]!$=@&*-/+.,:;?\"]+", " ", text)
 
     # Remove "^M" found in experiment
-    text = sub(r'\^M', ' ', text)
+    text = sub(r"\^M", " ", text)
 
     # Remove all apostrophes surrounded by letters. In other words, replace all "it's" with "its", etc.
-    text = sub(r"(?<=[A-Za-z])'(?=[A-Za-z])", '', text)
+    text = sub(r"(?<=[A-Za-z])'(?=[A-Za-z])", "", text)
 
     # Remove all apostrophes remaining. Needed to do this separately, because we needed to replace contraction
     # apostrophes with the blank string. We will replace all other apostrophes with a space
-    text = sub(r"'", ' ', text)
+    text = sub(r"'", " ", text)
 
     # Make sure there are spaces around numbers
-    text = sub(r'(?<=[^0-9\s])(?=[0-9])|(?<=[0-9])(?=[^0-9\s])', ' ', text)
+    text = sub(r"(?<=[^0-9\s])(?=[0-9])|(?<=[0-9])(?=[^0-9\s])", " ", text)
 
     return text
 
 
-def create_index(pairs: list[tuple[str, int]]) -> tuple[dict[str, list[int]], timedelta]:
+def create_index(
+    pairs: list[tuple[str, int]],
+) -> tuple[dict[str, list[int]], timedelta]:
     """
     Create an inverted index based on the list of (term, docID) tuples.
 
@@ -196,7 +205,9 @@ def create_pairs(tokens: list[str], docID: int) -> list[tuple[str, int]]:
     return [(token, docID) for token in tokens]
 
 
-def save_to_file(index: dict[str, list[tuple[int, int]]], mode: RunMode) -> None:
+def save_to_file(
+    index: dict[str, list[tuple[int, int]]] | dict[str, list[int]], mode: RunMode
+) -> None:
     """
     Save the computed index to an output file.
 
@@ -206,9 +217,9 @@ def save_to_file(index: dict[str, list[tuple[int, int]]], mode: RunMode) -> None
     :param mode: Whether naive or SPIMI
     """
 
-    Path('index/').mkdir(exist_ok=True, parents=True)
+    Path("index/").mkdir(exist_ok=True, parents=True)
 
-    file = ''
+    file = ""
 
     if mode == RunMode.NAIVE:
         file = "index/naive_index.txt"
