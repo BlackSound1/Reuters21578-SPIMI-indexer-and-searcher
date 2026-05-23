@@ -5,7 +5,15 @@ from datetime import timedelta
 
 from bs4 import Tag
 
-from utilities import RunMode, process_document, save_to_file, create_pairs, create_index, compute_doc_stats, get_texts
+from utilities import (
+    RunMode,
+    process_document,
+    save_to_file,
+    create_pairs,
+    create_index,
+    compute_doc_stats,
+    get_texts,
+)
 
 
 def SPIMI(ALL_TEXTS: list[Tag]) -> timedelta:
@@ -16,7 +24,7 @@ def SPIMI(ALL_TEXTS: list[Tag]) -> timedelta:
     :return: How long the process took, according to `full_timing`
     """
 
-    print('\n---------- SPIMI Indexer ----------')
+    print("\n---------- SPIMI Indexer ----------")
 
     print("\nCreating inverted index...")
     index: defaultdict[str, list[tuple[int, int]]] = defaultdict(list)
@@ -27,7 +35,7 @@ def SPIMI(ALL_TEXTS: list[Tag]) -> timedelta:
     # Go through each text in the corpus and update the index based on it
     for text in ALL_TEXTS:
         # Find the docID for this document
-        DOC_ID = int(text.attrs['newid'])
+        DOC_ID = int(text.attrs["newid"])
 
         # Create list of tokens without removing duplicates. Will use duplicates to compute term frequencies
         tokens = process_document(text, duplicates=True)
@@ -35,7 +43,9 @@ def SPIMI(ALL_TEXTS: list[Tag]) -> timedelta:
         # For each token in this document, add it's token to the index if it doesn't exist and add this
         # (docID, term frequency) to its postings list as a tuple. If it does exist, simply update its postings list
         for token in tokens:
-            tf = tokens.count(token)  # Get the term frequency for this term in the tokens
+            tf = tokens.count(
+                token
+            )  # Get the term frequency for this term in the tokens
 
             # Append (docID, term frequency) to the postings list for this token
             index[token] += [(DOC_ID, tf)]
@@ -68,7 +78,7 @@ def naive(ALL_TEXTS: list[Tag]) -> timedelta:
     :return: How long the process took, according to `full_timing`
     """
 
-    print('\n---------- Naive Indexer ----------')
+    print("\n---------- Naive Indexer ----------")
 
     # Create a list of (term, docID) pairs
     F: list[tuple[str, int]] = []
@@ -78,7 +88,7 @@ def naive(ALL_TEXTS: list[Tag]) -> timedelta:
     # Go through each text in the corpus and create (term, docID) pairs, and add them to the existing list
     for text in ALL_TEXTS:
         # Find the docID for this document
-        DOC_ID = int(text.attrs['newid'])
+        DOC_ID = int(text.attrs["newid"])
 
         # Create list of tokens
         tokens = process_document(text)
@@ -101,17 +111,17 @@ def naive(ALL_TEXTS: list[Tag]) -> timedelta:
 
 def main():
     # Get all reuters objects in the corpus
-    print('\n---------- Getting Articles ----------')
+    print("\n---------- Getting Articles ----------")
     ALL_TEXTS: list[Tag] = get_texts()
 
     # Compute the stats for all documents, necessary for BM25
-    print('\n---------- Computing Statistics for all Articles ----------')
+    print("\n---------- Computing Statistics for all Articles ----------")
     compute_doc_stats(ALL_TEXTS)
 
     duration_n = naive(ALL_TEXTS)
     duration_s = SPIMI(ALL_TEXTS)
 
-    print('\n---------- Timing Results ----------')
+    print("\n---------- Timing Results ----------")
 
     print(f"\nNaive: Time taken to index first 10,000 terms: {duration_n}")
     print(f"\nSPIMI: Time taken to index first 10,000 terms: {duration_s}")
@@ -120,9 +130,16 @@ def main():
     print(f"\nThere is a time difference of {diff:.2f}%")
 
     # Save timing results to file
-    with open('stats/timings.txt', 'wt') as f:
-        json.dump({'naive_time': str(duration_n), 'spimi_time': str(duration_s), 'difference': f'{diff:.2f}'}, f)
+    with open("stats/timings.txt", "wt") as f:
+        json.dump(
+            {
+                "naive_time": str(duration_n),
+                "spimi_time": str(duration_s),
+                "difference": f"{diff:.2f}",
+            },
+            f,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
