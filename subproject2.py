@@ -20,10 +20,12 @@ def single(query: str) -> None:
     # Search the naive index for the single-term query
     naive_postings = naive_index[query]
 
-    print(f"\nGiven the query \"{query}\": for the naive indexer, found postings: {naive_postings}")
+    print(
+        f'\nGiven the query "{query}": for the naive indexer, found postings: {naive_postings}'
+    )
 
     # Save results to file
-    with open(f'query_results/{query}-naive.txt', 'wt') as f:
+    with open(f"query_results/{query}-naive.txt", "wt") as f:
         json.dump(naive_postings, f)
 
     # OPERATE ON SPIMI INDEX
@@ -31,10 +33,12 @@ def single(query: str) -> None:
     # Search the SPIMI index for the single-term query
     spimi_postings = [posting[0] for posting in SPIMI_index[query]]
 
-    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
+    print(
+        f'\nGiven the query "{query}": for the SPIMI indexer, found postings: {spimi_postings}'
+    )
 
     # Save results to file
-    with open(f'query_results/{query}-SPIMI.txt', 'wt') as f:
+    with open(f"query_results/{query}-SPIMI.txt", "wt") as f:
         json.dump(spimi_postings, f)
 
 
@@ -47,7 +51,7 @@ def unranked(query: str) -> None:
     """
 
     # Turn query into a list of keywords, stripping AND
-    query_clean = [w.strip() for w in query.split('AND')]
+    query_clean = [w.strip() for w in query.split("AND")]
 
     # Start with all documents. Since we will find intersections, need to start with all documents in a set, so first
     # keyword can intersect with it
@@ -56,14 +60,18 @@ def unranked(query: str) -> None:
     # Go through each keyword in the query
     for q in query_clean:
         # Get the postings list for the query term in the SPIMI index. Intersect it with what we have above
-        spimi_postings = spimi_postings.intersection({posting[0] for posting in SPIMI_index[q]})
+        spimi_postings = spimi_postings.intersection(
+            {posting[0] for posting in SPIMI_index[q]}
+        )
 
     spimi_postings = list(spimi_postings)
 
-    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found postings: {spimi_postings}")
+    print(
+        f'\nGiven the query "{query}": for the SPIMI indexer, found postings: {spimi_postings}'
+    )
 
     # Write to file
-    with open(f'query_results/{query}.txt', 'wt') as f:
+    with open(f"query_results/{query}.txt", "wt") as f:
         json.dump(spimi_postings, f)
 
 
@@ -76,14 +84,13 @@ def ranked(query: str, top_k: int = 10) -> None:
     """
 
     # Turn query into a list of keywords, stripping OR
-    query_clean = [w.strip() for w in query.split('OR')]
+    query_clean = [w.strip() for w in query.split("OR")]
 
     # Create an empty list for all postings found in this query
     spimi_postings: list[int] = []
 
     # Go through all query terms
     for q in query_clean:
-
         # Add the found postings to the main list
         spimi_postings += [posting[0] for posting in SPIMI_index[q]]
 
@@ -95,7 +102,6 @@ def ranked(query: str, top_k: int = 10) -> None:
 
     # Go through each posting that was found
     for posting in spimi_postings:
-
         # If we've reached the top_k documents, stop
         if len(spimi_result.keys()) == top_k:
             break
@@ -104,11 +110,14 @@ def ranked(query: str, top_k: int = 10) -> None:
         if posting not in spimi_result.keys():
             spimi_result[posting] = spimi_postings.count(posting)
 
-    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found the top {top_k} postings " +
-          "({posting: count}): " + f"{spimi_result}")
+    print(
+        f'\nGiven the query "{query}": for the SPIMI indexer, found the top {top_k} postings '
+        + "({posting: count}): "
+        + f"{spimi_result}"
+    )
 
     # Write to file
-    with open(f'query_results/{query}.txt', 'wt') as f:
+    with open(f"query_results/{query}.txt", "wt") as f:
         json.dump(spimi_result, f)
 
 
@@ -128,17 +137,17 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
     RSV_values: dict[int, float] = {}
 
     # Turn query into a list of keywords
-    query_clean = [w.strip() for w in query.split(' ')]
+    query_clean = [w.strip() for w in query.split(" ")]
 
     # The number of total documents
     N = 21578
 
     # Get average document length
-    with open('stats/avg_size.txt', 'rt') as f:
+    with open("stats/avg_size.txt", "rt") as f:
         L_ave = float(f.read())
 
     # Get individual document length
-    with open('stats/doc_sizes.txt', 'rt') as f:
+    with open("stats/doc_sizes.txt", "rt") as f:
         doc_sizes = json.load(f)
 
     # Loop through each docID
@@ -179,25 +188,31 @@ def BM25(query: str, k_1: float = 1.5, b: float = 0.75, top_k: int = 10) -> None
         RSV_values[d] = RSV_d
 
     # Sort the documents by highest RSV values
-    RSV_values = {k: v for k, v in sorted(RSV_values.items(), key=lambda item: item[1], reverse=True)}
+    RSV_values = {
+        k: v
+        for k, v in sorted(RSV_values.items(), key=lambda item: item[1], reverse=True)
+    }
 
     # Round RSV to 2 decimal places
     RSV_values = {k: round(v, 2) for k, v in RSV_values.items()}
 
     # Get only top k results
-    RSV_top_k = list(RSV_values.items())[: top_k]
+    RSV_top_k = list(RSV_values.items())[:top_k]
 
-    print(f"\nGiven the query \"{query}\": for the SPIMI indexer, found the top {top_k} postings " +
-          "({posting: RSV score}): " + f"{RSV_top_k}")
+    print(
+        f'\nGiven the query "{query}": for the SPIMI indexer, found the top {top_k} postings '
+        + "({posting: RSV score}): "
+        + f"{RSV_top_k}"
+    )
 
     # Write to file
-    with open(f'query_results/{query}.txt', 'wt') as f:
+    with open(f"query_results/{query}.txt", "wt") as f:
         json.dump(RSV_top_k, f)
 
 
 def main():
     # Make sure the query_results/ folder exists
-    Path('query_results/').mkdir(exist_ok=True, parents=True)
+    Path("query_results/").mkdir(exist_ok=True, parents=True)
 
     test1 = "Bush"  # Single word query
     test2 = "drug AND company AND bankruptcy"  # Multiple keyword query (Unranked)
@@ -205,11 +220,11 @@ def main():
     test4 = "Democrat welfare healthcare reform policy"  # BM25 query
 
     # Load indexes
-    with open('index/naive_index.txt', 'rt') as f:
+    with open("index/naive_index.txt", "rt") as f:
         global naive_index
         naive_index = json.load(f)
 
-    with open('index/spimi_index.txt', 'rt') as f:
+    with open("index/spimi_index.txt", "rt") as f:
         global SPIMI_index
         SPIMI_index = json.load(f)
 
@@ -226,5 +241,5 @@ def main():
     BM25(test4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
