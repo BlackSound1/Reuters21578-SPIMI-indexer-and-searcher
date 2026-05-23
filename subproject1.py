@@ -120,13 +120,13 @@ def main():
     parser.add_argument(
         "-c",
         "--corpus",
-        default="../reuters21578/*.sgm",
-        help='Path to Reuters corpus files (glob pattern string). Default: "../reuters21578/*.sgm"',
+        default="../reuters21578/",
+        help='Path to Reuters corpus files. Default: "../reuters21578/"',
     )
     args = parser.parse_args()
 
     # Validate corpus path
-    corpus_path = Path(args.corpus).expanduser()
+    corpus_path = Path(args.corpus).expanduser() / "*.sgm"
     corpus_files = glob(str(corpus_path))
     if not corpus_files:
         parser.error(f"No files found matching pattern: {corpus_path}")

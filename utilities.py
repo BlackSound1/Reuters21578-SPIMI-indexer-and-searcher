@@ -53,7 +53,7 @@ def compute_doc_stats(ALL_TEXTS: list[Tag]) -> None:
         f.write(str(avg_size))
 
 
-def get_texts(corpus_path: str = "../reuters21578/*.sgm") -> list[Tag]:
+def get_texts(corpus_path: str) -> list[Tag]:
     """
     Read the Reuters corpus to get all the articles
 
