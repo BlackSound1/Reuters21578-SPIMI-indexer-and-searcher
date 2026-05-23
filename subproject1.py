@@ -1,7 +1,10 @@
+import argparse
 import json
 import time
 from collections import defaultdict
 from datetime import timedelta
+from glob import glob
+from pathlib import Path
 
 from bs4 import Tag
 
@@ -110,9 +113,27 @@ def naive(ALL_TEXTS: list[Tag]) -> timedelta:
 
 
 def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description="Index Reuters corpus using naive and SPIMI algorithms"
+    )
+    parser.add_argument(
+        "-c",
+        "--corpus",
+        default="../reuters21578/*.sgm",
+        help='Path to Reuters corpus files (glob pattern string). Default: "../reuters21578/*.sgm"',
+    )
+    args = parser.parse_args()
+
+    # Validate corpus path
+    corpus_path = Path(args.corpus).expanduser()
+    corpus_files = glob(str(corpus_path))
+    if not corpus_files:
+        parser.error(f"No files found matching pattern: {corpus_path}")
+
     # Get all reuters objects in the corpus
     print("\n---------- Getting Articles ----------")
-    ALL_TEXTS: list[Tag] = get_texts()
+    ALL_TEXTS: list[Tag] = get_texts(str(corpus_path))
 
     # Compute the stats for all documents, necessary for BM25
     print("\n---------- Computing Statistics for all Articles ----------")

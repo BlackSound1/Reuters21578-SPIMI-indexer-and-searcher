@@ -53,17 +53,16 @@ def compute_doc_stats(ALL_TEXTS: list[Tag]) -> None:
         f.write(str(avg_size))
 
 
-def get_texts() -> list[Tag]:
+def get_texts(corpus_path: str = "../reuters21578/*.sgm") -> list[Tag]:
     """
     Read the Reuters corpus to get all the articles
 
+    :param corpus_path: Glob pattern for corpus files. Default: "../reuters21578/*.sgm"
     :return: A list of Reuters articles, represented by Tag objects
     """
 
     # Get a list of all corpus files to read
-    CORPUS_FILES: list[Path] = [
-        Path(p) for p in glob("/home/ms/Documents/reuters21578/*.sgm")
-    ]
+    CORPUS_FILES: list[Path] = [Path(p) for p in glob(corpus_path)]
     dirname = CORPUS_FILES[0].parent
     print(
         f"\nIn directory: {dirname}, found files:\n\n{[f.name for f in CORPUS_FILES]}\n"
