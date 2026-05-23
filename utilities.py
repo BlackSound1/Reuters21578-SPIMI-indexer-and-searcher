@@ -72,7 +72,7 @@ def get_texts() -> list[Tag]:
         print(f"Reading file: {file.name}")
 
         # Read the files contents as HTML
-        with open(file, 'r') as f:
+        with open(file, 'r', encoding='latin-1') as f:
             contents = BeautifulSoup(f, features='html.parser')
 
         # Filter this content by 'reuters' tags
