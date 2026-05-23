@@ -2,9 +2,15 @@
 
 ## Installation
 
-Download the Reuters 21578 corpus from <http://www.daviddlewis.com/resources/testcollections/reuters21578/>. Make sure the unzipped folder is at the same level as this repository and is called `reuters21578`.
+Download the Reuters 21578 corpus from <http://www.daviddlewis.com/resources/testcollections/reuters21578/>.
 
-Download the dependencies in `requirements.txt`.
+By default, Subproject 1 assumes that the unzipped corpus is on the same level as 
+this repository and is called `reuters21578`. If this is not the case, you can 
+specify the path to the corpus using the `-c` or `--corpus` flag when running the 
+program. Use it like `$ python subproject1.py -c "/path/to/corpus/*.sgm"`. The path
+must be written as a string.
+
+Download the dependencies in `requirements.txt`. (This step is unnecessary if using UV).
 
 ## Running
 
