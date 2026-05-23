@@ -196,7 +196,7 @@ def create_pairs(tokens: list[str], docID: int) -> list[tuple[str, int]]:
     return [(token, docID) for token in tokens]
 
 
-def save_to_file(index: dict, mode: RunMode) -> None:
+def save_to_file(index: dict[str, list[tuple[int, int]]], mode: RunMode) -> None:
     """
     Save the computed index to an output file.
 

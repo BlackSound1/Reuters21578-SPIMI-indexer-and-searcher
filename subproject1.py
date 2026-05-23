@@ -2,7 +2,6 @@ import json
 import time
 from collections import defaultdict
 from datetime import timedelta
-from typing import List
 
 from bs4 import Tag
 
@@ -46,17 +45,17 @@ def SPIMI(ALL_TEXTS: list[Tag]) -> timedelta:
                 tock = time.perf_counter()
 
     # Remove duplicates in postings lists
-    index = {k: list(set(v)) for k, v in index.items()}
+    index_no_dupes = {k: list(set(v)) for k, v in index.items()}
 
     # Sort the index by term
-    index = dict(sorted(index.items()))
+    index_sorted = dict(sorted(index_no_dupes.items()))
 
     # Sort each postings list
-    for term in index:
-        index[term] = sorted(index[term])
+    for term in index_sorted:
+        index_sorted[term] = sorted(index_sorted[term])
 
     # Save results to file
-    save_to_file(index, mode=RunMode.SPIMI)
+    save_to_file(index_sorted, mode=RunMode.SPIMI)
 
     return timedelta(seconds=(tock - tick))
 
@@ -103,7 +102,7 @@ def naive(ALL_TEXTS: list[Tag]) -> timedelta:
 def main():
     # Get all reuters objects in the corpus
     print('\n---------- Getting Articles ----------')
-    ALL_TEXTS: List[Tag] = get_texts()
+    ALL_TEXTS: list[Tag] = get_texts()
 
     # Compute the stats for all documents, necessary for BM25
     print('\n---------- Computing Statistics for all Articles ----------')
